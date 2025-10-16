@@ -3,877 +3,443 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3-Room Chat App</title>
+    <title>Debug Chat - Room Test</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #667eea, #764ba2);
-            --bg-color: #f8fafc;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --white: #ffffff;
-            --border-color: #e2e8f0;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--primary-gradient);
-            color: var(--text-primary);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #333;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
         }
-
-        /* Header */
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem 1.5rem;
-            text-align: center;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header h1 {
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            background: var(--secondary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-        }
-
-        /* Main Chat Container */
-        .chat-container {
-            flex: 1;
-            display: flex;
-            max-width: 1400px;
+        
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            width: 100%;
-            padding: 1rem;
-            gap: 1rem;
-            height: calc(100vh - 80px);
-        }
-
-        /* Fixed Rooms Sidebar */
-        .rooms-sidebar {
-            width: 120px;
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 15px;
-            padding: 1rem;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: fixed;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 90;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-
-        .rooms-sidebar h3 {
-            margin-bottom: 1rem;
-            font-size: 1rem;
+        
+        .header {
+            background: #2d3748;
+            color: white;
+            padding: 20px;
             text-align: center;
         }
-
-        .rooms-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            width: 100%;
+        
+        .debug-info {
+            background: #fed7d7;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            border-bottom: 1px solid #feb2b2;
         }
-
+        
+        .main {
+            display: flex;
+            height: 70vh;
+        }
+        
+        .sidebar {
+            width: 200px;
+            background: #f7fafc;
+            padding: 20px;
+            border-right: 1px solid #e2e8f0;
+        }
+        
         .room-btn {
-            background: var(--secondary-gradient);
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #667eea;
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
         }
-
-        .room-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-
+        
         .room-btn.active {
             background: #48bb78;
-            transform: scale(1.05);
         }
-
-        .room-btn.owner {
-            background: #ed8936;
+        
+        .room-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-
-        /* Chat Main Area */
-        .chat-main {
+        
+        .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            min-height: 500px;
-            margin-left: 140px;
         }
-
+        
         .room-header {
+            background: #edf2f7;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
             background: white;
-            padding: 1.25rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-family: Arial, sans-serif;
         }
-
-        .room-header h2 {
-            margin: 0;
-            color: var(--text-primary);
+        
+        .message {
+            margin: 15px 0;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
         }
-
-        .room-actions {
+        
+        .message.own {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.other {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-sender {
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .message.own .message-sender {
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .system-message {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            margin: 10px 0;
+            padding: 8px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             gap: 10px;
         }
-
-        .action-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background: var(--border-color);
-        }
-
-        .owner-badge {
-            background: #ed8936;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        /* Messages Container */
-        .messages-container {
-            flex: 1;
-            padding: 1.25rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
-        }
-
-        /* Messages */
-        .message {
-            max-width: 70%;
-            padding: 1rem 1.25rem;
-            border-radius: 20px;
-            position: relative;
-            animation: messageSlide 0.3s ease-out;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            line-height: 1.5;
-            word-wrap: break-word;
-        }
-
-        @keyframes messageSlide {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px) scale(0.95); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }
-        }
-
-        .message.own {
-            align-self: flex-end;
-            background: var(--secondary-gradient);
-            color: var(--white);
-            border-bottom-right-radius: 8px;
-        }
-
-        .message.other {
-            align-self: flex-start;
-            background: var(--white);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 8px;
-        }
-
-        .message-sender {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            opacity: 0.9;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .message.own .message-sender {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .message.other .message-sender {
-            color: #667eea;
-        }
-
-        .owner-indicator {
-            background: #ed8936;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 0.6rem;
-            font-weight: 600;
-        }
-
-        .message-text {
-            font-size: 1rem;
-            line-height: 1.4;
-        }
-
-        .message-time {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            text-align: right;
-            margin-top: 0.5rem;
-        }
-
-        .system-message {
-            align-self: center !important;
-            background: rgba(255, 255, 255, 0.5) !important;
-            color: var(--text-secondary) !important;
-            font-style: italic;
-            max-width: 80% !important;
-            text-align: center;
-            padding: 0.75rem 1rem !important;
-        }
-
-        /* Input Area */
-        .input-container {
-            display: flex;
-            padding: 1.25rem;
-            background: var(--white);
-            border-top: 1px solid var(--border-color);
-            gap: 0.75rem;
-            align-items: center;
-        }
-
+        
         .message-input {
             flex: 1;
-            padding: 1rem 1.25rem;
-            border: 2px solid var(--border-color);
-            border-radius: 25px;
-            background: #f7fafc;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            min-height: 56px;
+            padding: 12px 16px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
         }
-
+        
         .message-input:focus {
             border-color: #667eea;
-            background: var(--white);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
         }
-
-        .send-button {
-            padding: 1rem 1.5rem;
+        
+        .send-btn {
+            padding: 12px 24px;
+            background: #48bb78;
+            color: white;
             border: none;
-            border-radius: 25px;
-            background: var(--secondary-gradient);
-            color: var(--white);
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            min-height: 56px;
-            white-space: nowrap;
+            font-weight: bold;
+            font-size: 16px;
         }
-
-        .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .send-button:disabled {
-            background: #cbd5e0;
-            transform: none;
-            box-shadow: none;
+        
+        .send-btn:disabled {
+            background: #a0aec0;
             cursor: not-allowed;
         }
-
-        /* User List */
-        .user-list {
-            list-style: none;
-            margin-top: 1rem;
-        }
-
-        .user-item {
-            padding: 0.5rem 0.75rem;
-            margin: 0.25rem 0;
-            background: var(--white);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-            font-size: 0.8rem;
-        }
-
-        .user-status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #48bb78;
-            flex-shrink: 0;
-        }
-
-        /* Connection Status */
-        .connection-status {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            background: rgba(72, 187, 120, 0.1);
-            border: 1px solid #48bb78;
-            color: var(--text-primary);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-        }
-
-        /* Typing Indicator */
-        .typing-indicator {
-            font-style: italic;
-            opacity: 0.7;
-            padding: 0.75rem 1.25rem;
-            font-size: 0.9rem;
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Login Overlay */
+        
         .login-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
-            backdrop-filter: blur(5px);
+            z-index: 1000;
         }
-
+        
         .login-box {
-            background: var(--white);
-            padding: 2.5rem;
-            border-radius: 25px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
-            color: var(--text-primary);
             width: 90%;
-            max-width: 380px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: modalSlide 0.4s ease-out;
+            max-width: 400px;
         }
-
-        @keyframes modalSlide {
-            from { 
-                opacity: 0; 
-                transform: translateY(-30px) scale(0.9); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }
-        }
-
-        .login-box h2 {
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            margin-bottom: 0.5rem;
-            background: var(--secondary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .login-box p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
-        }
-
-        .username-input {
+        
+        .login-input {
             width: 100%;
-            padding: 1rem 1.25rem;
-            border: 2px solid var(--border-color);
-            border-radius: 15px;
-            font-size: 1.1rem;
-            outline: none;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-weight: 500;
+            padding: 12px 16px;
+            margin: 15px 0;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
         }
-
-        .username-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        
+        .users-list {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #718096;
         }
-
-        .join-button {
-            width: 100%;
-            padding: 1rem;
-            background: var(--secondary-gradient);
-            color: var(--white);
-            border: none;
-            border-radius: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .join-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Welcome Message */
-        .welcome-message {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: var(--text-secondary);
-        }
-
-        /* Scrollbar Styling */
-        .messages-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .messages-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
-            border-radius: 3px;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .chat-container {
-                padding: 0.5rem;
-                height: calc(100vh - 70px);
-            }
-            
-            .rooms-sidebar {
-                position: fixed;
-                bottom: 1rem;
-                left: 50%;
-                transform: translateX(-50%);
-                top: auto;
-                width: 90%;
-                flex-direction: row;
-                height: auto;
-                padding: 0.75rem;
-            }
-            
-            .rooms-list {
-                flex-direction: row;
-                justify-content: space-around;
-            }
-            
-            .room-btn {
-                flex: 1;
-                margin: 0 2px;
-                padding: 8px;
-                font-size: 0.8rem;
-            }
-            
-            .chat-main {
-                margin-left: 0;
-                margin-bottom: 80px;
-            }
-            
-            .message {
-                max-width: 85%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .rooms-sidebar {
-                width: 95%;
-            }
-            
-            .room-btn {
-                font-size: 0.7rem;
-                padding: 6px;
-            }
-            
-            .message {
-                max-width: 90%;
-            }
+        
+        .user-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
         }
     </style>
 </head>
 <body>
-    <!-- Login Overlay -->
+    <!-- Login -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
-            <h2>Join 3-Room Chat</h2>
-            <p>Enter your username to start chatting</p>
-            <input type="text" class="username-input" id="usernameInput" placeholder="Your username" maxlength="20">
-            <button class="join-button" id="joinButton">Join Chat</button>
+            <h2>Join Debug Chat</h2>
+            <p>Enter your username to test rooms</p>
+            <input type="text" class="login-input" id="usernameInput" placeholder="Your name" maxlength="20">
+            <button class="send-btn" onclick="joinChat()" style="width:100%">Start Testing</button>
         </div>
     </div>
 
-    <!-- Main Chat Interface -->
-    <div class="header">
-        <h1>💬 3-Room Chat</h1>
-        <p>Simple chat with 3 fixed rooms</p>
-    </div>
-
-    <div class="connection-status" id="connectionStatus">
-        Connected as: <span id="currentUser">Unknown</span> | 
-        Room: <span id="currentRoom">None</span>
-    </div>
-
-    <div class="chat-container">
-        <!-- Fixed Rooms Sidebar -->
-        <div class="rooms-sidebar">
-            <h3>Rooms</h3>
-            <div class="rooms-list">
-                <button class="room-btn" data-room="room1">Room 1</button>
-                <button class="room-btn" data-room="room2">Room 2</button>
-                <button class="room-btn" data-room="room3">Room 3</button>
-            </div>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Debug Chat - Room Test</h1>
+            <p>Connected as: <span id="currentUser">Not connected</span> | Room: <span id="currentRoom">None</span></p>
         </div>
-
-        <!-- Chat Main Area -->
-        <div class="chat-main">
-            <div class="room-header">
-                <h2 id="roomTitle">Select a Room</h2>
-                <div class="room-actions" id="roomActions" style="display: none;">
-                    <button class="action-btn" id="exportBtn">💾 Export</button>
-                    <button class="action-btn" id="clearBtn">🗑️ Clear</button>
-                    <span class="owner-badge" id="ownerBadge" style="display: none;">Owner</span>
+        
+        <div class="debug-info" id="debugInfo">
+            Debug: Not connected to server
+        </div>
+        
+        <div class="main">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h3>🏠 Rooms</h3>
+                <button class="room-btn" onclick="joinRoom('room1')">Room 1</button>
+                <button class="room-btn" onclick="joinRoom('room2')">Room 2</button>
+                <button class="room-btn" onclick="joinRoom('room3')">Room 3</button>
+                
+                <div class="users-list">
+                    <h4>👥 Online (<span id="userCount">0</span>)</h4>
+                    <div id="usersList">No users</div>
                 </div>
             </div>
-
-            <div class="messages-container" id="messagesContainer">
-                <div class="welcome-message">
-                    <h3>Welcome to 3-Room Chat! 🎉</h3>
-                    <p>Select a room from the sidebar to start chatting.</p>
-                    <p>The first person in each room becomes the owner.</p>
+            
+            <!-- Chat Area -->
+            <div class="chat-area">
+                <div class="room-header">
+                    <h2 id="roomTitle">Select a Room</h2>
+                    <p id="roomStats">Choose Room 1, 2, or 3 from sidebar</p>
                 </div>
-            </div>
-
-            <div class="typing-indicator" id="typingIndicator"></div>
-
-            <div class="input-container">
-                <input type="text" class="message-input" id="messageInput" placeholder="Select a room to start typing..." disabled>
-                <button class="send-button" id="sendButton" disabled>Send</button>
+                
+                <div class="messages" id="messagesContainer">
+                    <div class="system-message">
+                        <h3>Welcome! 👋</h3>
+                        <p>This is a DEBUG version to fix room issues</p>
+                        <p>Select Room 1, 2, or 3 to start testing</p>
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Type a message to test..." disabled>
+                    <button class="send-btn" id="sendButton" onclick="sendMessage()" disabled>Send</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.socket.io/4.7.0/socket.io.min.js"></script>
     <script>
-        // ✅ CONNECTED TO YOUR BACKEND URL
         const socket = io('https://chat-backend-wuv0.onrender.com');
-
-        // DOM elements
-        const loginOverlay = document.getElementById('loginOverlay');
-        const usernameInput = document.getElementById('usernameInput');
-        const joinButton = document.getElementById('joinButton');
-        const currentUserSpan = document.getElementById('currentUser');
-        const currentRoomSpan = document.getElementById('currentRoom');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const roomTitle = document.getElementById('roomTitle');
-        const roomActions = document.getElementById('roomActions');
-        const exportBtn = document.getElementById('exportBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const ownerBadge = document.getElementById('ownerBadge');
-        const roomButtons = document.querySelectorAll('.room-btn');
-
+        
         let currentUser = '';
         let currentRoom = '';
-        let isOwner = false;
-        let typingTimer;
-
-        // Event Listeners
-        joinButton.addEventListener('click', joinChat);
-        usernameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') joinChat();
+        
+        // Update debug info
+        function updateDebugInfo(message) {
+            document.getElementById('debugInfo').textContent = 'Debug: ' + message;
+            console.log('DEBUG:', message);
+        }
+        
+        // Socket connection events
+        socket.on('connect', () => {
+            updateDebugInfo('Connected to server');
+            document.getElementById('debugInfo').style.background = '#c6f6d5';
         });
-
-        sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+        
+        socket.on('disconnect', () => {
+            updateDebugInfo('Disconnected from server');
+            document.getElementById('debugInfo').style.background = '#fed7d7';
         });
-
-        messageInput.addEventListener('input', handleTyping);
-
-        exportBtn.addEventListener('click', exportChat);
-        clearBtn.addEventListener('click', clearChat);
-
-        // Room buttons
-        roomButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const roomId = e.target.getAttribute('data-room');
-                joinRoom(roomId);
-            });
+        
+        socket.on('error', (data) => {
+            updateDebugInfo('Error: ' + data.message);
+            document.getElementById('debugInfo').style.background = '#fed7d7';
+            alert('Error: ' + data.message);
         });
-
+        
         function joinChat() {
-            const username = usernameInput.value.trim();
+            const username = document.getElementById('usernameInput').value.trim();
             if (username.length < 2) {
-                alert('Please enter a username (at least 2 characters)');
+                alert('Please enter your name (at least 2 characters)');
                 return;
             }
             
             currentUser = username;
-            currentUserSpan.textContent = username;
-            loginOverlay.style.display = 'none';
+            document.getElementById('currentUser').textContent = username;
+            document.getElementById('loginOverlay').style.display = 'none';
+            updateDebugInfo('User set: ' + username);
         }
-
+        
         function joinRoom(roomId) {
-            if (currentUser) {
-                socket.emit('joinRoom', {
-                    username: currentUser,
-                    roomId: roomId
-                });
+            if (!currentUser) {
+                alert('Please enter your name first');
+                return;
             }
+            
+            updateDebugInfo(`Trying to join room: ${roomId}`);
+            
+            // Update UI
+            document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('roomTitle').textContent = 'Room ' + roomId.slice(-1);
+            document.getElementById('currentRoom').textContent = 'Room ' + roomId.slice(-1);
+            
+            // Join room via socket
+            socket.emit('joinRoom', {
+                username: currentUser,
+                roomId: roomId
+            });
+            
+            currentRoom = roomId;
+            
+            // Enable messaging
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendButton').disabled = false;
+            document.getElementById('messageInput').focus();
+            
+            updateDebugInfo(`Joined room: ${roomId}`);
         }
-
+        
         function sendMessage() {
-            const message = messageInput.value.trim();
-            if (message && currentUser && currentRoom) {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && currentRoom) {
+                updateDebugInfo(`Sending message to ${currentRoom}: ${message}`);
+                
                 socket.emit('sendMessage', {
-                    username: currentUser,
                     message: message,
                     roomId: currentRoom
                 });
-                messageInput.value = '';
-                socket.emit('stopTyping', { roomId: currentRoom });
+                input.value = '';
             }
         }
-
-        function handleTyping() {
-            if (currentRoom) {
-                socket.emit('typing', {
-                    username: currentUser,
-                    roomId: currentRoom
-                });
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(() => {
-                    socket.emit('stopTyping', { roomId: currentRoom });
-                }, 1000);
-            }
-        }
-
-        function exportChat() {
-            if (!currentRoom) return;
+        
+        // Socket events
+        socket.on('roomJoined', (data) => {
+            updateDebugInfo(`Successfully joined room: ${data.roomId}`);
             
-            const messages = Array.from(messagesContainer.querySelectorAll('.message:not(.system-message)'))
-                .map(msg => {
-                    const sender = msg.querySelector('.message-sender')?.textContent || 'You';
-                    const text = msg.querySelector('.message-text').textContent;
-                    const time = msg.querySelector('.message-time').textContent;
-                    return `[${time}] ${sender}: ${text}`;
-                })
-                .join('\n');
+            // Clear messages and load history
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
             
-            const blob = new Blob([`Chat Export - ${currentRoom}\n${new Date().toLocaleString()}\n\n${messages}`], 
-                { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chat-${currentRoom}-${Date.now()}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function clearChat() {
-            if (isOwner) {
-                socket.emit('clearChat', { roomId: currentRoom });
-            } else {
-                alert('Only room owner can clear chat');
-            }
-        }
-
-        function addMessage(username, message, timestamp, isOwn = false, userIsOwner = false) {
+            addSystemMessage(`You joined Room ${data.roomId.slice(-1)}`);
+            
+            data.room.messages.forEach(msg => {
+                addMessage(msg.username, msg.message, msg.userId === socket.id);
+            });
+            
+            updateUsersList(data.users);
+        });
+        
+        socket.on('userJoined', (data) => {
+            addSystemMessage(`${data.username} joined the room`);
+            updateUsersList(data.users);
+        });
+        
+        socket.on('userLeft', (data) => {
+            addSystemMessage(`${data.username} left the room`);
+            updateUsersList(data.users);
+        });
+        
+        socket.on('newMessage', (data) => {
+            addMessage(data.username, data.message, data.userId === socket.id);
+            updateDebugInfo(`New message from ${data.username}`);
+        });
+        
+        // Helper functions
+        function addMessage(username, message, isOwn) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
-            
-            const time = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            const senderHTML = userIsOwner ? 
-                `<span class="message-sender">${username} <span class="owner-indicator">Owner</span></span>` :
-                `<span class="message-sender">${username}</span>`;
-            
             messageDiv.innerHTML = `
-                ${!isOwn ? senderHTML : ''}
-                <div class="message-text">${message}</div>
-                <div class="message-time">${time}</div>
+                <div class="message-sender">${username} ${isOwn ? '(You)' : ''}</div>
+                <div>${message}</div>
             `;
             
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            // Remove welcome message if it exists
-            const welcomeMessage = document.querySelector('.welcome-message');
-            if (welcomeMessage) {
-                welcomeMessage.remove();
-            }
         }
-
+        
         function addSystemMessage(message) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message system-message';
-            messageDiv.innerHTML = `<div class="message-text">${message}</div>`;
+            messageDiv.className = 'system-message';
+            messageDiv.textContent = message;
+            
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-
-        function showTypingIndicator(username) {
-            typingIndicator.textContent = `${username} is typing...`;
+        
+        function updateUsersList(users) {
+            const usersList = document.getElementById('usersList');
+            const userCount = document.getElementById('userCount');
+            
+            userCount.textContent = users.length;
+            usersList.innerHTML = users.map(user => 
+                `<div class="user-item">${user.username} ${user.id === socket.id ? '(You)' : ''}</div>`
+            ).join('');
         }
-
-        function hideTypingIndicator() {
-            typingIndicator.textContent = '';
-        }
-
-        // Socket event handlers
-        socket.on('connect', () => {
-            console.log('Connected to chat server');
-            connectionStatus.style.background = 'rgba(76, 175, 80, 0.3)';
+        
+        // Event listeners
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
         });
-
-        socket.on('disconnect', () => {
-            console.log('Disconnected from server');
-            connectionStatus.style.background = 'rgba(244, 67, 54, 0.3)';
+        
+        // Auto-focus username input
+        document.getElementById('usernameInput').focus();
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinChat();
         });
-
-        socket.on('roomJoined', (data) => {
-            currentRoom = data.room.name;
-            currentRoomSpan.textContent = data.room.name;
-            roomTitle.textContent = data.room.name;
-            isOwner = data.isOwner;
-            
-            // Update room buttons
-            roomButtons.forEach(btn => {
-                btn.classList.remove('active', 'owner');
-                if (btn.getAttribute('data-room') === data.room.id) {
-                    btn.classList.add('active');
-                    if (isOwner) btn.classList.add('owner');
-                }
-            });
-            
-            // Enable messaging
-            messageInput.disabled = false;
-            messageInput.placeholder = `Message in ${data.room.name}...`;
-            sendButton.disabled = false;
-            messageInput.focus();
-            
-            // Show/hide owner features
-            roomActions.style.display = 'flex';
-            ownerBadge.style.display = isOwner ? 'block' : 'none';
-            clearBtn.style.display = isOwner ? 'block' : 'none';
-            
-            // Clear and load room messages
-            messagesContainer.innerHTML = '';
-            data.room.messages.forEach(msg => {
-                const userData = data.users.find(user => user.id === msg.userId);
-                const userIsOwner = userData ? userData.isOwner : false;
-                addMessage(msg.username, msg.message, msg.timestamp, msg.userId === socket.id, userIsOwner);
-            });
-        });
-
-        socket.on('userJoinedRoom', (data) => {
-            addSystemMessage(`${data.username} joined the room`);
-        });
-
-        socket.on('userLeftRoom', (data) => {
-            addSystemMessage(`${data.username} left the room`);
-        });
-
-        socket.on('newMessage', (data) => {
-            // For new messages, we don't have user data, so we'll assume not owner for display
-            addMessage(data.username, data.message, data.timestamp, data.userId === socket.id, false);
-        });
-
-        socket.on('userTyping', (data) => {
-            if (data.roomId === currentRoom) {
-                showTypingIndicator(data.username);
-            }
-        });
-
-        socket.on('userStopTyping', () => {
-            hideTypingIndicator();
-        });
-
-        socket.on('chatCleared', (data) => {
-            addSystemMessage(`Chat was cleared by ${data.clearedBy}`);
-            messagesContainer.innerHTML = '';
-        });
-
-        socket.on('error', (data) => {
-            alert(`Error: ${data.message}`);
-        });
-
-        // Focus username input on load
-        usernameInput.focus();
+        
+        // Initial debug
+        updateDebugInfo('Page loaded, waiting for connection...');
     </script>
 </body>
 </html>
