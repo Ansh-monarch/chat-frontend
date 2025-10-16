@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debug Chat - Room Test</title>
+    <title>3-Room Chat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -30,21 +30,13 @@
             text-align: center;
         }
         
-        .debug-info {
-            background: #fed7d7;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            border-bottom: 1px solid #feb2b2;
-        }
-        
         .main {
             display: flex;
             height: 70vh;
         }
         
         .sidebar {
-            width: 200px;
+            width: 150px;
             background: #f7fafc;
             padding: 20px;
             border-right: 1px solid #e2e8f0;
@@ -61,6 +53,8 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
+            position: relative;
+            transition: all 0.3s ease;
         }
         
         .room-btn.active {
@@ -70,6 +64,29 @@
         .room-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .user-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e53e3e;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .room-info {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #718096;
+            text-align: center;
         }
         
         .chat-area {
@@ -89,49 +106,30 @@
             padding: 20px;
             overflow-y: auto;
             background: white;
-            font-family: Arial, sans-serif;
         }
         
         .message {
-            margin: 15px 0;
-            padding: 12px 16px;
-            border-radius: 12px;
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 10px;
             max-width: 80%;
-            word-wrap: break-word;
         }
         
         .message.own {
             background: #667eea;
             color: white;
             margin-left: auto;
-            border-bottom-right-radius: 4px;
         }
         
         .message.other {
             background: #f7fafc;
             border: 1px solid #e2e8f0;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
         }
         
         .message-sender {
             font-weight: bold;
             font-size: 0.9em;
             margin-bottom: 5px;
-        }
-        
-        .message.own .message-sender {
-            color: rgba(255,255,255,0.9);
-        }
-        
-        .system-message {
-            text-align: center;
-            color: #718096;
-            font-style: italic;
-            margin: 10px 0;
-            padding: 8px;
-            background: #f7fafc;
-            border-radius: 8px;
         }
         
         .input-area {
@@ -144,15 +142,10 @@
         
         .message-input {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #cbd5e0;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
             border-radius: 8px;
             font-size: 16px;
-        }
-        
-        .message-input:focus {
-            border-color: #667eea;
-            outline: none;
         }
         
         .send-btn {
@@ -163,12 +156,6 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 16px;
-        }
-        
-        .send-btn:disabled {
-            background: #a0aec0;
-            cursor: not-allowed;
         }
         
         .login-overlay {
@@ -193,9 +180,9 @@
         
         .login-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px;
             margin: 15px 0;
-            border: 2px solid #cbd5e0;
+            border: 1px solid #cbd5e0;
             border-radius: 8px;
             font-size: 16px;
         }
@@ -206,9 +193,33 @@
             color: #718096;
         }
         
+        /* Online users in current room */
+        .online-users {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .online-users h4 {
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
         .user-item {
             padding: 5px 0;
             border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .user-status {
+            width: 8px;
+            height: 8px;
+            background: #48bb78;
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -216,34 +227,51 @@
     <!-- Login -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
-            <h2>Join Debug Chat</h2>
-            <p>Enter your username to test rooms</p>
+            <h2>Join 3-Room Chat</h2>
+            <p>Enter your username</p>
             <input type="text" class="login-input" id="usernameInput" placeholder="Your name" maxlength="20">
-            <button class="send-btn" onclick="joinChat()" style="width:100%">Start Testing</button>
+            <button class="send-btn" onclick="joinChat()" style="width:100%">Start Chatting</button>
         </div>
     </div>
 
     <div class="container">
         <div class="header">
-            <h1>🔧 Debug Chat - Room Test</h1>
-            <p>Connected as: <span id="currentUser">Not connected</span> | Room: <span id="currentRoom">None</span></p>
-        </div>
-        
-        <div class="debug-info" id="debugInfo">
-            Debug: Not connected to server
+            <h1>💬 3-Room Chat</h1>
+            <p>Connected as: <span id="currentUser">Not connected</span></p>
         </div>
         
         <div class="main">
-            <!-- Sidebar -->
+            <!-- Sidebar with user counts -->
             <div class="sidebar">
-                <h3>🏠 Rooms</h3>
-                <button class="room-btn" onclick="joinRoom('room1')">Room 1</button>
-                <button class="room-btn" onclick="joinRoom('room2')">Room 2</button>
-                <button class="room-btn" onclick="joinRoom('room3')">Room 3</button>
+                <h3>Rooms</h3>
                 
-                <div class="users-list">
-                    <h4>👥 Online (<span id="userCount">0</span>)</h4>
-                    <div id="usersList">No users</div>
+                <!-- Room 1 -->
+                <button class="room-btn" onclick="joinRoom('room1')">
+                    Room 1
+                    <div class="user-count" id="room1Count">0</div>
+                </button>
+                <div class="room-info" id="room1Info">0 users online</div>
+                
+                <!-- Room 2 -->
+                <button class="room-btn" onclick="joinRoom('room2')">
+                    Room 2
+                    <div class="user-count" id="room2Count">0</div>
+                </button>
+                <div class="room-info" id="room2Info">0 users online</div>
+                
+                <!-- Room 3 -->
+                <button class="room-btn" onclick="joinRoom('room3')">
+                    Room 3
+                    <div class="user-count" id="room3Count">0</div>
+                </button>
+                <div class="room-info" id="room3Info">0 users online</div>
+                
+                <!-- Online users in current room -->
+                <div class="online-users">
+                    <h4>👥 In This Room</h4>
+                    <div id="usersList">
+                        <div style="color: #a0aec0; font-style: italic;">Join a room to see users</div>
+                    </div>
                 </div>
             </div>
             
@@ -251,20 +279,20 @@
             <div class="chat-area">
                 <div class="room-header">
                     <h2 id="roomTitle">Select a Room</h2>
-                    <p id="roomStats">Choose Room 1, 2, or 3 from sidebar</p>
+                    <p id="roomStats">Choose a room to start chatting</p>
                 </div>
                 
                 <div class="messages" id="messagesContainer">
-                    <div class="system-message">
+                    <div style="text-align:center; padding:40px; color:#718096;">
                         <h3>Welcome! 👋</h3>
-                        <p>This is a DEBUG version to fix room issues</p>
-                        <p>Select Room 1, 2, or 3 to start testing</p>
+                        <p>Select a room from the sidebar to start chatting with others.</p>
+                        <p>See how many users are in each room below the room buttons.</p>
                     </div>
                 </div>
                 
                 <div class="input-area">
-                    <input type="text" class="message-input" id="messageInput" placeholder="Type a message to test..." disabled>
-                    <button class="send-btn" id="sendButton" onclick="sendMessage()" disabled>Send</button>
+                    <input type="text" class="message-input" id="messageInput" placeholder="Type a message..." disabled>
+                    <button class="send-btn" id="sendButton" disabled>Send</button>
                 </div>
             </div>
         </div>
@@ -277,40 +305,26 @@
         let currentUser = '';
         let currentRoom = '';
         
-        // Update debug info
-        function updateDebugInfo(message) {
-            document.getElementById('debugInfo').textContent = 'Debug: ' + message;
-            console.log('DEBUG:', message);
-        }
-        
-        // Socket connection events
-        socket.on('connect', () => {
-            updateDebugInfo('Connected to server');
-            document.getElementById('debugInfo').style.background = '#c6f6d5';
-        });
-        
-        socket.on('disconnect', () => {
-            updateDebugInfo('Disconnected from server');
-            document.getElementById('debugInfo').style.background = '#fed7d7';
-        });
-        
-        socket.on('error', (data) => {
-            updateDebugInfo('Error: ' + data.message);
-            document.getElementById('debugInfo').style.background = '#fed7d7';
-            alert('Error: ' + data.message);
-        });
+        // Store room user counts
+        const roomCounts = {
+            room1: 0,
+            room2: 0, 
+            room3: 0
+        };
         
         function joinChat() {
             const username = document.getElementById('usernameInput').value.trim();
             if (username.length < 2) {
-                alert('Please enter your name (at least 2 characters)');
+                alert('Please enter your name');
                 return;
             }
             
             currentUser = username;
             document.getElementById('currentUser').textContent = username;
             document.getElementById('loginOverlay').style.display = 'none';
-            updateDebugInfo('User set: ' + username);
+            
+            // Request initial room data
+            updateAllRoomCounts();
         }
         
         function joinRoom(roomId) {
@@ -319,14 +333,12 @@
                 return;
             }
             
-            updateDebugInfo(`Trying to join room: ${roomId}`);
-            
             // Update UI
             document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
             document.getElementById('roomTitle').textContent = 'Room ' + roomId.slice(-1);
-            document.getElementById('currentRoom').textContent = 'Room ' + roomId.slice(-1);
+            document.getElementById('roomStats').textContent = 'Chatting in Room ' + roomId.slice(-1);
             
             // Join room via socket
             socket.emit('joinRoom', {
@@ -340,8 +352,6 @@
             document.getElementById('messageInput').disabled = false;
             document.getElementById('sendButton').disabled = false;
             document.getElementById('messageInput').focus();
-            
-            updateDebugInfo(`Joined room: ${roomId}`);
         }
         
         function sendMessage() {
@@ -349,8 +359,6 @@
             const message = input.value.trim();
             
             if (message && currentRoom) {
-                updateDebugInfo(`Sending message to ${currentRoom}: ${message}`);
-                
                 socket.emit('sendMessage', {
                     message: message,
                     roomId: currentRoom
@@ -359,15 +367,48 @@
             }
         }
         
+        // Update user count for a specific room
+        function updateRoomCount(roomId, count) {
+            roomCounts[roomId] = count;
+            
+            // Update badge
+            const countElement = document.getElementById(roomId + 'Count');
+            const infoElement = document.getElementById(roomId + 'Info');
+            
+            if (countElement) {
+                countElement.textContent = count;
+                // Change color based on count
+                if (count === 0) {
+                    countElement.style.background = '#a0aec0';
+                } else if (count === 1) {
+                    countElement.style.background = '#48bb78';
+                } else if (count <= 3) {
+                    countElement.style.background = '#ed8936';
+                } else {
+                    countElement.style.background = '#e53e3e';
+                }
+            }
+            
+            if (infoElement) {
+                infoElement.textContent = count + (count === 1 ? ' user online' : ' users online');
+            }
+        }
+        
+        // Update all room counts (called periodically)
+        function updateAllRoomCounts() {
+            // In a real app, we'd get this from the server
+            // For now, we'll simulate by listening to join/leave events
+            setTimeout(updateAllRoomCounts, 5000); // Update every 5 seconds
+        }
+        
         // Socket events
         socket.on('roomJoined', (data) => {
-            updateDebugInfo(`Successfully joined room: ${data.roomId}`);
+            // Update the current room's user count
+            updateRoomCount(data.roomId, data.users.length);
             
             // Clear messages and load history
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.innerHTML = '';
-            
-            addSystemMessage(`You joined Room ${data.roomId.slice(-1)}`);
             
             data.room.messages.forEach(msg => {
                 addMessage(msg.username, msg.message, msg.userId === socket.id);
@@ -378,17 +419,29 @@
         
         socket.on('userJoined', (data) => {
             addSystemMessage(`${data.username} joined the room`);
+            
+            // Update user count for the room where user joined
+            // Note: We don't know which room from this event, so we'll update current room
+            if (currentRoom) {
+                updateRoomCount(currentRoom, data.users.length);
+            }
+            
             updateUsersList(data.users);
         });
         
         socket.on('userLeft', (data) => {
             addSystemMessage(`${data.username} left the room`);
+            
+            // Update user count for current room
+            if (currentRoom) {
+                updateRoomCount(currentRoom, data.users.length);
+            }
+            
             updateUsersList(data.users);
         });
         
         socket.on('newMessage', (data) => {
             addMessage(data.username, data.message, data.userId === socket.id);
-            updateDebugInfo(`New message from ${data.username}`);
         });
         
         // Helper functions
@@ -410,7 +463,13 @@
             const messagesContainer = document.getElementById('messagesContainer');
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'system-message';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.color = '#718096';
+            messageDiv.style.fontStyle = 'italic';
+            messageDiv.style.margin = '10px 0';
+            messageDiv.style.padding = '8px';
+            messageDiv.style.background = '#f7fafc';
+            messageDiv.style.borderRadius = '8px';
             messageDiv.textContent = message;
             
             messagesContainer.appendChild(messageDiv);
@@ -419,12 +478,17 @@
         
         function updateUsersList(users) {
             const usersList = document.getElementById('usersList');
-            const userCount = document.getElementById('userCount');
             
-            userCount.textContent = users.length;
-            usersList.innerHTML = users.map(user => 
-                `<div class="user-item">${user.username} ${user.id === socket.id ? '(You)' : ''}</div>`
-            ).join('');
+            if (users.length === 0) {
+                usersList.innerHTML = '<div style="color: #a0aec0; font-style: italic;">No users in room</div>';
+            } else {
+                usersList.innerHTML = users.map(user => 
+                    `<div class="user-item">
+                        <div class="user-status"></div>
+                        ${user.username} ${user.id === socket.id ? '<strong>(You)</strong>' : ''}
+                    </div>`
+                ).join('');
+            }
         }
         
         // Event listeners
@@ -432,14 +496,18 @@
             if (e.key === 'Enter') sendMessage();
         });
         
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        
         // Auto-focus username input
         document.getElementById('usernameInput').focus();
         document.getElementById('usernameInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') joinChat();
         });
         
-        // Initial debug
-        updateDebugInfo('Page loaded, waiting for connection...');
+        // Initialize room counts
+        updateRoomCount('room1', 0);
+        updateRoomCount('room2', 0);
+        updateRoomCount('room3', 0);
     </script>
 </body>
 </html>
