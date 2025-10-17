@@ -754,6 +754,25 @@
         updateRoomCount('room1', 0);
         updateRoomCount('room2', 0);
         updateRoomCount('room3', 0);
+       // Add this function to update ALL room counts
+function updateAllRoomCounts(roomData) {
+    roomData.forEach(room => {
+        updateRoomCount(room.id, room.userCount);
+    });
+}
+
+// Add this socket event handler (put it with other socket.on handlers)
+socket.on('roomsUpdate', (roomData) => {
+    console.log('🔄 Room counts updated:', roomData);
+    updateAllRoomCounts(roomData);
+});
+
+// Also update the userLeft event handler to be more robust
+socket.on('userLeft', (data) => {
+    addSystemMessage(`${data.username} left the room`);
+    updateUsersList(data.users);
+    // Room counts will be updated via roomsUpdate event
+}); 
     </script>
 </body>
 </html>
